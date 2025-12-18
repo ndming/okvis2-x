@@ -70,6 +70,8 @@ if(USE_COLIDMAP)
 endif()
 
 if(HAVE_LIBREALSENSE)
+  find_package(fastcdr REQUIRED)
+  find_package(fastrtps REQUIRED)
   find_package(realsense2 REQUIRED)
   target_sources(${LIB_NAME}
     PRIVATE

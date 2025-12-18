@@ -1,0 +1,36 @@
+name: okv2x
+channels:
+  - nvidia/label/cuda-12.8.1
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - blas-devel
+  - cmake=3.22
+  - cuda-toolkit=12.8
+  - cuda-nvtx-dev=12.8
+  - cusparselt-dev
+  - eigen
+  - fast-cdr
+  - fast-rtps
+  - gcc=11.4
+  - gxx=11.4
+  - geographiclib-cpp
+  - glog=0.5.0
+  - libboost-devel
+  - libcudnn-dev
+  - libcudss-dev
+  - libopencv
+  - libopenblas=*=openmp*
+  - ninja
+  - pcl
+  - pkg-config
+  - python=3.10
+  - pip=25.2
+  - suitesparse
+  - tbb-devel
+  - pip:
+    - --index-url https://download.pytorch.org/whl/cu128
+    - torch==2.7.1
+    - torchvision==0.22.1
+    - torchaudio==2.7.1

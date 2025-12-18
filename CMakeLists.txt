@@ -24,8 +24,10 @@ option (DO_TIMING
         "Enable timing" ON)
 option (BUILD_SHARED_LIBS
         "Whether to build okvis as a shared library" OFF)
-
-option (USE_COLIDMAP "Whether to build okvis supportin colour and object's id 'for language based OKVIS' or regular one" ON)
+option (USE_COLIDMAP
+        "Whether to build okvis supportin colour and object's id 'for language based OKVIS' or regular one" ON)
+option(USE_ACCURATE_DEPTH
+        "Use accurate stereo depth model" OFF)
 
 set(OKVIS_CXX_STANDARD 17)
 set(OKVIS_PUBLIC_CXX_FLAGS)
@@ -65,6 +67,11 @@ if(USE_NN AND USE_GPU)
 endif()
 
 if(USE_NN)
+  find_package(CUDA REQUIRED)
+  set(CAFFE2_USE_CUDNN      ON)
+  set(CAFFE2_USE_CUFILE     ON)
+  set(CAFFE2_USE_CUSPARSELT ON)
+  set(USE_CUDSS             ON)
   find_package(Torch REQUIRED)
 
   # Function to check if file exists and has correct hash
@@ -80,71 +87,128 @@ if(USE_NN)
   endfunction()
 
   # Download the models.
-  message(STATUS "Downloading depth models")
+  # message(STATUS "Downloading depth models")
+  set(MODELS_DIR "${PROJECT_SOURCE_DIR}/checkpoints")
 
   # Get Model for Depth Prediction: Unimatch-accuracy
   # "stereo-mix-sigma.pt" was used for the VBR dataset
-  set(DEPTH_ACCURACY_URL "https://cvg.cit.tum.de/webshare/g/srl-models/unimatch/stereo-mix-sigma.pt")
-  set(DEPTH_ACCURACY_FILE "${PROJECT_SOURCE_DIR}/build/stereo-mix-sigma.pt")
-  set(DEPTH_ACCURACY_HASH "SHA256=33e7016865560adca17e4402624abfa495d0016ea0a6fb3091c18ed73f439165")
-  check_hash("${DEPTH_ACCURACY_FILE}" "${DEPTH_ACCURACY_HASH}" DEPTH_ACCURACY_OK)
-  if(DEPTH_ACCURACY_OK)
-    message(STATUS "DEPTH_ACCURACY Model already available. No Download needed!")
-  else()
-    file(DOWNLOAD
-      ${DEPTH_ACCURACY_URL}
-      ${DEPTH_ACCURACY_FILE}
-      EXPECTED_HASH ${DEPTH_ACCURACY_HASH}
-      TIMEOUT 60
-    )
-  endif()
+  # set(DEPTH_ACCURACY_URL "https://cvg.cit.tum.de/webshare/g/srl-models/unimatch/stereo-mix-sigma.pt")
+  # set(DEPTH_ACCURACY_FILE "${PROJECT_SOURCE_DIR}/build/stereo-mix-sigma.pt")
+
+  # if(DEPTH_ACCURACY_OK)
+  #  message(STATUS "DEPTH_ACCURACY Model already available. No Download needed!")
+  # else()
+  #  file(DOWNLOAD
+  #    ${DEPTH_ACCURACY_URL}
+  #    ${DEPTH_ACCURACY_FILE}
+  #    EXPECTED_HASH ${DEPTH_ACCURACY_HASH}
+  #    TIMEOUT 60
+  #  )
+  # endif()
 
   # Get Model for Depth Prediction: Unimatch-fast
   # "stereo-indoor-sigma.pt" was used for the euroc and hilti22 datasets.
-  set(DEPTH_FAST_URL "https://cvg.cit.tum.de/webshare/g/srl-models/unimatch/stereo-indoor-sigma.pt")
-  set(DEPTH_FAST_FILE "${PROJECT_SOURCE_DIR}/build/stereo-indoor-sigma.pt")
-  set(DEPTH_FAST_HASH "SHA256=75d3a68b0a18e8ff1b20ac1e4b75a094d595c57cf52482485d4e8049782fe4c8")
-  check_hash("${DEPTH_FAST_FILE}" "${DEPTH_FAST_HASH}" DEPTH_FAST_OK)
-  if(DEPTH_FAST_OK)
-    message(STATUS "DEPTH_FAST Model already available. No Download needed!")
-  else()
-    file(DOWNLOAD
-      ${DEPTH_FAST_URL}
-      ${DEPTH_FAST_FILE}
-      EXPECTED_HASH ${DEPTH_FAST_HASH}
-      TIMEOUT 60
-    )
-  endif()
+  # set(DEPTH_FAST_URL "https://cvg.cit.tum.de/webshare/g/srl-models/unimatch/stereo-indoor-sigma.pt")
+  # set(DEPTH_FAST_FILE "${PROJECT_SOURCE_DIR}/build/stereo-indoor-sigma.pt")
+  # set(DEPTH_FAST_HASH "SHA256=75d3a68b0a18e8ff1b20ac1e4b75a094d595c57cf52482485d4e8049782fe4c8")
+  # check_hash("${DEPTH_FAST_FILE}" "${DEPTH_FAST_HASH}" DEPTH_FAST_OK)
+  # if(DEPTH_FAST_OK)
+  #  message(STATUS "DEPTH_FAST Model already available. No Download needed!")
+  # else()
+  #  file(DOWNLOAD
+  #    ${DEPTH_FAST_URL}
+  #    ${DEPTH_FAST_FILE}
+  #    EXPECTED_HASH ${DEPTH_FAST_HASH}
+  #    TIMEOUT 60
+  #  )
+  # endif()
 
-  set(DEPTH_FILE "${PROJECT_SOURCE_DIR}/build/depth-model.pt")
+  # set(DEPTH_FILE "${PROJECT_SOURCE_DIR}/build/depth-model.pt")
 
   # Please set your desiered stereo depth model (DEPTH_FAST_FILE or DEPTH_ACCURACY_FILE) here.
-  file(RENAME ${DEPTH_FAST_FILE} ${DEPTH_FILE})
+  # file(RENAME ${DEPTH_FAST_FILE} ${DEPTH_FILE})
 
-  if(BUILD_ROS2)
-    file(COPY ${DEPTH_FILE}
-        DESTINATION ${PROJECT_SOURCE_DIR}/resources/)
-  endif()
+  # Depth prediction: unimatch-accuracy
+  set(DEPTH_ACCURACY_FILE "${MODELS_DIR}/stereo-mix-sigma.pt")
+  set(DEPTH_ACCURACY_HASH "SHA256=33e7016865560adca17e4402624abfa495d0016ea0a6fb3091c18ed73f439165")
+  check_hash("${DEPTH_ACCURACY_FILE}" "${DEPTH_ACCURACY_HASH}" DEPTH_ACCURACY_OK)
 
-  # Get Model for Depth Prediction: Multi View Stereo
-  set(MVS_URL "https://cvg.cit.tum.de/webshare/g/srl-models/mvs/mvs-sigma.pt")
-  set(MVS_FILE "${PROJECT_SOURCE_DIR}/build/mvs-model.pt")
+  # Depth prediction: unimatch-fast
+  set(DEPTH_FAST_FILE "${MODELS_DIR}/stereo-indoor-sigma.pt")
+  set(DEPTH_FAST_HASH "SHA256=75d3a68b0a18e8ff1b20ac1e4b75a094d595c57cf52482485d4e8049782fe4c8")
+  check_hash("${DEPTH_FAST_FILE}" "${DEPTH_FAST_HASH}" DEPTH_FAST_OK)
+
+  # Depth prediction: multi-view stereo
+  set(MVS_FILE "${MODELS_DIR}/mvs-sigma.pt")
   set(MVS_HASH "SHA256=1f37ee7499b1b38dfdb11208b859cf02c127e5f120e9db3ed34847ff14eb6633")
   check_hash("${MVS_FILE}" "${MVS_HASH}" MVS_OK)
-  if(MVS_OK)
-    message(STATUS "MVS Model already available. No Download needed!")
+
+  if(NOT DEPTH_ACCURACY_OK OR NOT DEPTH_FAST_OK OR NOT MVS_OK)
+    message(FATAL_ERROR "One or more model files are missing or have wrong hash. Please check ${MODELS_DIR}")
+  endif()
+
+  # Choose depth accuracy or depth fast
+  if(USE_ACCURATE_DEPTH)
+    set(DEPTH_SOURCE_FILE ${DEPTH_ACCURACY_FILE})
   else()
-    file(DOWNLOAD
-      ${MVS_URL}
-      ${MVS_FILE}
-      EXPECTED_HASH ${MVS_HASH}
-      TIMEOUT 120
+    set(DEPTH_SOURCE_FILE ${DEPTH_FAST_FILE})
+  endif()
+
+  # Copy models into the binary directory
+  set(DEPTH_FILE "${CMAKE_BINARY_DIR}/depth-model.pt")
+  set(MVS_OUT_FILE "${CMAKE_BINARY_DIR}/mvs-model.pt")
+
+  # file(COPY ${DEPTH_SOURCE_FILE} DESTINATION ${CMAKE_BINARY_DIR})
+  # file(RENAME
+  #  "${CMAKE_BINARY_DIR}/$(basename ${DEPTH_SOURCE_FILE})"
+  #  ${DEPTH_FILE}
+  # )
+
+  configure_file(
+    ${DEPTH_SOURCE_FILE}
+    ${DEPTH_FILE}
+    COPYONLY
+  )
+
+  file(COPY ${MVS_FILE} DESTINATION ${CMAKE_BINARY_DIR})
+  file(RENAME
+    "${CMAKE_BINARY_DIR}/mvs-sigma.pt"
+    ${MVS_OUT_FILE}
+  )
+
+  if(BUILD_ROS2)
+    file(COPY
+      ${DEPTH_FILE}
+      ${MVS_OUT_FILE}
+      DESTINATION ${PROJECT_SOURCE_DIR}/resources/
     )
   endif()
-  if(BUILD_ROS2)
-    file(COPY ${MVS_FILE}
-        DESTINATION ${PROJECT_SOURCE_DIR}/resources/)
-  endif()
+
+  # if(BUILD_ROS2)
+  #   file(COPY ${DEPTH_FILE}
+  #       DESTINATION ${PROJECT_SOURCE_DIR}/resources/)
+  # endif()
+
+  # if(BUILD_ROS2)
+  #   file(COPY ${MVS_FILE}
+  #       DESTINATION ${PROJECT_SOURCE_DIR}/resources/)
+  # endif()
+
+  # Get Model for Depth Prediction: Multi View Stereo
+  # set(MVS_URL "https://cvg.cit.tum.de/webshare/g/srl-models/mvs/mvs-sigma.pt")
+  # set(MVS_FILE "${PROJECT_SOURCE_DIR}/build/mvs-model.pt")
+  # set(MVS_HASH "SHA256=1f37ee7499b1b38dfdb11208b859cf02c127e5f120e9db3ed34847ff14eb6633")
+  # check_hash("${MVS_FILE}" "${MVS_HASH}" MVS_OK)
+  # if(MVS_OK)
+  #  message(STATUS "MVS Model already available. No Download needed!")
+  # else()
+  #   file(DOWNLOAD
+  #     ${MVS_URL}
+  #     ${MVS_FILE}
+  #     EXPECTED_HASH ${MVS_HASH}
+  #     TIMEOUT 120
+  #   )
+  # endif()
 endif()
 
 if(NOT DO_TIMING)
