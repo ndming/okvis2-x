@@ -173,7 +173,10 @@ To change the cmake build type for the whole project use:
     cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
         -DUSE_GPU=ON -DBUILD_ROS2=OFF \
         -DTorch_DIR=$CONDA_PREFIX/lib/python3.10/site-packages/torch/share/cmake/Torch \
-        -Drealsense2_DIR=/usr/lib/x86_64-linux-gnu/cmake/realsense2
+        -Drealsense2_DIR=/usr/lib/x86_64-linux-gnu/cmake/realsense2 \
+        -Dfastcdr_DIR=/usr/lib/x86_64-linux-gnu/cmake/fastcdr \
+        -Dfastrtps_DIR=/usr/lib/x86_64-linux-gnu/cmake/fastrtps \
+        -Dfoonathan_memory_DIR=/usr/lib/x86_64-linux-gnu/cmake/foonathan_memory
     cmake --build build -j22
 
 When running the command `cmake -DCMAKE_BUILD_TYPE=Release ..` keep in mind that based on your optional configurations, you might have to add the following command line options.

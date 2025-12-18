@@ -6,3 +6,4 @@
 *.asv
 /documentation
 checkpoints/
+output/

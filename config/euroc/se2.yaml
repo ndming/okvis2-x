@@ -4,7 +4,7 @@
 
 general:
   # outputs
-  results_directory:          "/home/"
+  results_directory:          "/home/minhnd59/repos/okvis2-x/output/euroc/vicon_room1/easy/"
   write_mesh_output: true
 
   # Sensor processing

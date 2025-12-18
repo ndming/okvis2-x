@@ -11,8 +11,8 @@ dependencies:
   - cuda-nvtx-dev=12.8
   - cusparselt-dev
   - eigen
-  - fast-cdr
-  - fast-rtps
+#  - fast-cdr
+#  - fast-rtps
   - gcc=11.4
   - gxx=11.4
   - geographiclib-cpp
@@ -23,7 +23,7 @@ dependencies:
   - libopencv
   - libopenblas=*=openmp*
   - ninja
-  - pcl
+  - pcl=1.15
   - pkg-config
   - python=3.10
   - pip=25.2
